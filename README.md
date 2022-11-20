@@ -15,7 +15,7 @@ Pour lancer le projet :
 
 - Utiliser à la suite les commandes :
   - *npx tsc*
-  -  *node dist/app.js*
+  -  *node index.js*
 - Un message avec *Express is listning on http://localhost:3000* apparaitra dans la console lors d'une requête dans le navigateur sur l'adresse indiquée.
 
 NOTE : Le projet est téléchargeable en .rar , un extracteur de fichier sera necessaire pour extraire le projet.
