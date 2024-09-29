@@ -1,21 +1,35 @@
-# DevOps
+# DevOps TP2
+1) J'ai décidé d'utiliser debian 11.5 car j'y suis habitué, et on va nommer le stage build :
+FROM debian:11.5 as build
 
-Objectifs : 
-- Mise en place d'un environnement de développement et les bases du projet avec le moins de dépendances possibles :
-  - Utilisation de la librairie *express* pour la mise d'un serveur web rapide sur http://localhost:3000
-- Développer une API qui retourne au format JSON les headers de la requête quand il y une requête HTTP GET sur /ping
-  - La requête http://localhost:3000/ping renvoie bien les headers au format .JSON
-- Le serveur doit écouter sur un port configurable via la variable d'environnement : PING_LISTEN_PORT ou par défaut sur un port au choix
-  - La variable d'environnement PING_LISTEN_PORT permet de choisir un port au choix qui sera utiliser par le serveur. Par exemple : http://localhost:3000 --> http://localhost:2700
-- Réponse vide avec code 404 si quoi que ça soit d'autre que GET /ping 
-  - Réalisation d'un message d'erreur (par défaut) avec code 404 Not found pour tout autre requête différente que http://localhost:3000/ping 
+2) On commence par mettre à jour les packages par défaut d'ubuntu puis on installe nodejs et on nettoie le cache avec :
+RUN apt-get update -yq \
+        && apt-get install curl gnupg -yq \
+        && curl -sL https://deb.nodesource.com/setup_16.x | bash \
+        && apt-get install nodejs -yq \
+        && apt-get clean -y
+        
+3) Ensuite on ajoute un dossier add que l'on va définir comme espace de travail avec : 
+ADD . /app/
+WORKDIR /app
+
+4) Puis on installe npm sous sa dernière version en global ainsi que express (que l'on utilise dans notre code) avec :
+RUN npm install -g npm && npm install express
+
+5) Et enfin, on lance le serveur en tant que l'utilisateur spécifié (root, même si le but même de spécifier l'utilisateur est de ne pas passer par root) : 
+CMD npm run start
+USER root
 
 
-Pour lancer le projet :
+Pour créér l'imag en multi-stage (Dockerfile.2), nous allons procéder comme pour le premier fichier Dockerfile jusqu'à la 4e étape, puis nous allons créer le stage exec depuis build avec :
+FROM build as exec
 
-- Utiliser à la suite les commandes :
-  - *npx tsc*
-  -  *node index.js*
-- Un message avec *Express is listning on http://localhost:3000* apparaitra dans la console lors d'une requête dans le navigateur sur l'adresse indiquée.
+Et nous allons lancer le serveur en tant que root: 
+CMD npm run start
+USER root
 
-NOTE : Le projet est téléchargeable en .rar , un extracteur de fichier sera necessaire pour extraire le projet.
+
+Voici les commandes à utiliser :
+  - Pour créer l'image avec un seul stage : docker build -t tp2 .
+  - Pour créer l'image avec 2 stages : docker build -t tp2 -f Dockerfile.2 .
+  - Pour créer et lancer un conteneur depuis cette image sur le port d'écoute du serveur : docker run -d -p 3000:3000 tp2
